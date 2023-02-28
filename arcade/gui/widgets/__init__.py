@@ -16,7 +16,6 @@ from pyglet.event import EventDispatcher, EVENT_HANDLED, EVENT_UNHANDLED
 
 import arcade
 from arcade import Sprite, get_window, Texture
-from arcade.types import Color
 from arcade.color import TRANSPARENT_BLACK
 from arcade.gui.events import (
     UIEvent,
@@ -26,9 +25,10 @@ from arcade.gui.events import (
     UIOnClickEvent,
     UIOnUpdateEvent,
 )
+from arcade.gui.nine_patch import NinePatchTexture
 from arcade.gui.property import Property, bind, ListProperty
 from arcade.gui.surface import Surface
-from arcade.gui.nine_patch import NinePatchTexture
+from arcade.types import Color
 
 if TYPE_CHECKING:
     from arcade.gui.ui_manager import UIManager
@@ -361,12 +361,17 @@ class UIWidget(EventDispatcher, ABC):
             # rect changes in children will trigger_full_render
             child._do_layout()
 
-    def _do_render(self, surface: Surface, force=False):
+    def _do_render(self, surface: Surface, force=False) -> bool:
         """Helper function to trigger :meth:`UIWidget.do_render` through the widget tree,
         should only be used by UIManager!
+
+        :return: if this widget or a child was rendered
         """
+        rendered = False
+
         should_render = force or not self._rendered
         if should_render and self.visible:
+            rendered = True
             self.do_render_base(surface)
             self.do_render(surface)
             self._rendered = True
@@ -374,7 +379,9 @@ class UIWidget(EventDispatcher, ABC):
         # only render children if self is visible
         if self.visible:
             for child in self.children:
-                child._do_render(surface, should_render)
+                rendered |= child._do_render(surface, should_render)
+
+        return rendered
 
     def do_render_base(self, surface: Surface):
         """
