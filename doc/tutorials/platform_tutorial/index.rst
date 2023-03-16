@@ -1,6 +1,6 @@
 .. _platformer_tutorial:
 
-Simple Platformer
+Un simple jeu de plateforme
 =================
 
 .. image:: intro_screen.png
